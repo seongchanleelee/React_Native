@@ -108,7 +108,257 @@ import { StatusBar } from 'expo-status-bar';
   //이를 통해 알 수 있듯 상태바의 형태를 뜻함
   ```
 
+
+
+
+### ReactNative Api and Components
+
+- RN을 사용하는 유저들을 위해 API 와 Components가 준비 되어있다.
+- https://reactnative.dev/docs/components-and-apis
+- 하지만 많은 기능을 다루기 힘들기에 ReactNative측에선 많은 기능을 줄였고, 이를 expo측에서 모바일을 위한 api, components를 모아 만드는 사업을 시작하게 됨
+- https://docs.expo.dev/
+
+
+
+### Layout System
+
+- 모바일은 grid 나 inblock등 이 존재하지 않고 flex만 존재한다!
+
+- 고로 따로 display:flex 라고 선언하지 않아도 flex관련 layout을 사용 가능
+
+- **모바일에서 Flex Direction 기본값은 모두 Column이다.(웹에선 Flex Direction 기본값은 row였음)
+
+- React Native를 이용하는데 있어, width나 height를 사용할 일은 거의 없다 왜나면 모바일은 화면 사이즈가 다양하기 때문!
+
+- 대신 flex를 이용하여 비율을 맞춰 사용한다
+
+- ```js
+  export default function App() {
+    return (
+      <View style={{flex: 1}}>
+        <View style={{ flex: 1,backgroundColor:"tomato"}}></View>
+        <View style={{ flex: 1,backgroundColor:"teal"}}></View>
+        <View style={{flex: 1,backgroundColor:"orange"}}></View>
+
+      </View>
+    );
+  }
+
+  // 부모components의 flex를 1로 두었을 때(전체화면을 1이라고 둠 0.5라면 그중 절반만 됨) 그 걸 1:1:1비율로 자식컴포넌트가 가져간다는 뜻
+  ```
+
+- 부모컴포넌트의 flex 비율을 잡지 않으면 자식 컴포넌트도 flex비율이 잡히지 않으므로 주의해야함
+
+
+
+### **모바일 화면 필수 컴포넌트RN(자주쓰임)
+
+- ScrollView
+
+- ```js
+  import {ScrollView } from "react-native";
+
+  // View 대신 사용하면 됨 <ScrollView>
+  // 아래로 스크롤이 자동으로 됨
+  ```
+
+- ScrollView(props) horizontal
+
+- ```js
+  // horizontal
+
+  // 옆으로 스크롤이 됨
+  <ScrollView horizontal>
+
+  ```
+
+- ScrollView를 이용하면 flex 사이즈가 먹지 않는다!
+
+  - why? 모름 그냥 안먹음
+
+  - ScrollView에게 css를 먹이기 위해선 props에 있는 contentContainerStyle을 사용해야 함
+
+  - ```html
+    <ScrollView horizontal contentContainerStyle={styles.weather}>
+    ```
+
+  - but 사용하게 되면 스크롤링이 멈춤
+
+  - 왜나하면, horizontal scrollview는 flex보다 훨씬 커야함. 그래야 좌우로 이동이 가능해서.
+
+  - 그래서 style에 flex를 지워버리면 됨
+
+- **css를 적용하는데 확인하는 방법
+
+  - expo go를 흔든 뒤 제일 아래 show element inspector를 클릭하면 css적인 요소를 확인 가능
+
+- **핸드폰 사이즈를 알려주는 API (Dimensions)
+
+  - ```js
+    import { Dimensions } from "react-native";
+
+    const {height, width} = Dimensions.get("window");
+    console.log(width) //12미니의 경우 375
+    console.log(height) //812
+
+    //이를 변수로 사용하기 위해선
+    const {width: SCREEN_WIDTH} = Dimensions.get("window")
+
+    //css로 사용
+      day: {
+        width:SCREEN_WIDTH,
+        alignItems: "center",
+      },
+    ```
+
+- ScrollView(props) paginate(페이지생성)
+
+  - 스크롤을 자유롭지 못하게 해주고 페이지가 생기게 해줌
+
+  - ```
+    // pagingEnabled
+
+    // 페이지를 생성시켜 자유롭게 스크롤 하는걸 막아줌
+    <ScrollView pagingEnabled horizontal>
+
+    ```
+
+- ScrollView(props) scroll indicator, horizontal scroll indicator visible
+
+  - 스크롤 시 생기는 스크롤 바 를 숨겨줌
+
+  - ```
+    <ScrollView pagingEnabled horizontal showsHorizontalScrollIndicator={false}>
+    ```
+
+- ScrollView(props) indicatorStyle
+
+  - 스크롤 바를 커스텀 할 수 있음(이건 ios에서만 동작됨)
+
+  - ```js
+    <ScrollView
+           pagingEnabled 
+           horizontal 
+           // 여기
+           indicatorStyle="white"
+           //
+           contentContainerStyle={styles.weather}>
+
+    ```
+
+- Activity indicator --> 로딩중 화면을 보여줌
+
+- ```html
+  <ActivityIndicator color="white" size="large">
+  ```
+
 - ​
 
+### **모바일 컴포넌트EXPO(자주쓰임)
+
+- Location
+
+  - ```bash
+    npx expo install expo-location
+    ```
+
+- Location 의 methods: requestForegroundPermissionsAsync()
+
+  - 위치추적을 허가 받는 methods
 
 
+  - ```js
+    import * as Location from 'expo-location'
+    import React, { useEffect, useState } from "react";
+
+    export default function App() {
+      const [location, setLocation] = useState()
+      const [ok, setOk] = useState(true)
+      const ask = async() => {
+        const {granted} =  await Location.requestForegroundPermissionsAsync();
+        if (!granted) {
+          setOk(false);
+        }
+      }
+      useEffect(() => {
+        ask()
+      },[])
+    ```
+
+- Location의 methods: getCurrentPositionAsync()
+
+  - 위치의 위도와 경도를 뽑아줌
+
+  - ```js
+    import * as Location from 'expo-location'
+    import { StatusBar } from "expo-status-bar";
+    import React, { useEffect, useState } from "react";
+    import { View, StyleSheet, Text, ScrollView, Dimensions } from "react-native";
+
+    const {width: SCREEN_WIDTH} = Dimensions.get("window")
+    export default function App() {
+      const [city,setCity] = useState("Loading...")
+      const [location, setLocation] = useState()
+      const [ok, setOk] = useState(true)
+      const ask = async() => {
+        // 위치추적허용을 위함
+        const {granted} =  await Location.requestForegroundPermissionsAsync();
+        if (!granted) {
+          setOk(false);
+        }
+        // 위치의 위도와 경도를 뽑아줌
+        const {coords:{latitude, longitude}} = await Location.getCurrentPositionAsync({accuracy:5})
+    ```
+
+- Location의 methods: reverseGeocodeAsync()
+
+  - 위도와 경도를 기반으로 지역의 정보를 뽑아줌
+
+  - ```js
+
+    import * as Location from 'expo-location'
+    import { StatusBar } from "expo-status-bar";
+    import React, { useEffect, useState } from "react";
+    import { View, StyleSheet, Text, ScrollView, Dimensions } from "react-native";
+
+    const {width: SCREEN_WIDTH} = Dimensions.get("window")
+    export default function App() {
+      const [city,setCity] = useState("Loading...")
+      const [location, setLocation] = useState()
+      const [ok, setOk] = useState(true)
+      const ask = async() => {
+        // 위치추적허용을 위함
+        const {granted} =  await Location.requestForegroundPermissionsAsync();
+        if (!granted) {
+          setOk(false);
+        }
+        // 위치의 위도와 경도를 뽑아줌
+        const {coords:{latitude, longitude}} = await Location.getCurrentPositionAsync({accuracy:5})
+        // 위도와 경도를 기반으로 지역정보를 뽑아줌
+        const location = await Location.reverseGeocodeAsync(
+          {latitude, longitude}, 
+          {useGoogleMaps:false})
+        setCity(location[0].city)
+      }
+    ```
+
+- weather는 실습해보려 했지만... api 오류가 남.(유료서비스에 접근해서 안되는듯 함)
+
+- ** Icon
+
+  - expo init 으로 App을 설치했다면 아이콘 사용전에 import
+
+  - ```js
+    import {Ionicons} from '@expo/vector-icons'
+    ```
+
+  - ```html
+    // 예제
+    <Ionicons name="md-checkmark-circle" size={32} color="green">
+    ```
+
+  - 아이콘 정보 들은 url을 통해 확인 가능
+
+  - https://icons.expo.fyi/
+
+  ​
