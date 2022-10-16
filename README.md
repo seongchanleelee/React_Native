@@ -362,3 +362,374 @@ import { StatusBar } from 'expo-status-bar';
   - https://icons.expo.fyi/
 
   ​
+
+## TODOAPP
+
+### color.js
+
+- color나 또 다른 css 요소중 자주 사용되는 요소 가 있다면 따로 js파일을 이용하는것 이 좋음
+
+- ```js
+  //clolr.js
+
+  export const theme = {
+      bg: "black",
+      gray: "#3A3D40",
+  }
+  ```
+
+- 이 후 이용시 import  한 뒤 사용하면 됨
+
+- ```js
+  import { theme } from './color';
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.bg,
+      paddingHorizontal: 20,
+    },
+  ```
+
+### 터치관련 속성
+
+1. TouchableOpacity
+
+   - 클릭 시 투명도가 내려간다.
+
+   - 투명도를 조절 방법
+
+   - ```js
+     <TouchableOpacity activeOpacity={0}>
+     ```
+
+2. TouchableHighlight
+
+   - 요소를 클릭 시 배경색이 바뀌도록 해줌
+
+   - 변화는 바로 보이지 않고 속성을 추가 시켜야 함
+
+     1. onPress
+
+        - 유저가 Touchable을 눌렀을 때 실행되는 이벤트를 뜻함
+
+        - ```js
+          <TouchableHighlight onPress={() => console.log("pressed")}>
+          ```
+
+     2. underlayColor
+
+        - 클릭 시 배경색이 변경됨
+
+        - ```js
+          <TouchableHighlight onPress={() => console.log("pressed")} underlayColor="#DDDDDD">
+          ```
+
+3. TouchableWithoutFeedback
+
+   - 클릭은 인식되지만, 이벤트 변화를 보여주고 싶지 않을 때 사용된다.
+   - UI적인 변화는 없음
+
+4. Pressable
+
+   - TouchableWithoutFeedback 과 거의 동일하지만, 새로운 component요소들이 많이 들어있음
+   - hitSlop: 터치 감지되는 범위를 지정 가능
+
+
+
+알아야 할 요소(css적으로 중요)
+
+- ```
+  <Text style={styles.btnText}>Work</Text>
+  // 이는 styles.btnText만 style요소로 가져갈 수 있다.
+  // styles제외하고, 또 다른 요소들을 가져 오거나 style에 if문을 사용한는 방법은?
+  ```
+
+- ```js
+  <Text style={{...styles.btnText, color: wirking ? "white": theme.gray}}>Work</Text>
+
+  // style요소로 ...styles.btnText를 가져오고 나머지 녀석 들 도 사용가능
+  // 그 뒤는 color요소를 변화시키는데 도움을 주는데, working이 true면 white, 아니면 gray가 들어온다
+  ```
+
+- ```js
+  // 예시
+        <TouchableOpacity onPress={work}>
+          <Text style={{...styles.btnText, color: working ? "white": theme.gray}}>Work</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={travel}>
+          <Text style={{...styles.btnText, color: !working ? "white":theme.gray }}>Travel</Text>
+        </TouchableOpacity>
+  ```
+
+
+
+## TextInput
+
+- html처럼 textarea나 input이 없음 (TextInput하나로 해결)
+
+- ```js
+  import { TextInput } from 'react-native';
+  ```
+
+- placeholder
+
+  - TexpInput태그 안에 미리 들어갈 요소
+
+  - ```js
+     <TextInput keyboardType='number-pad' placeholder={working ? "Add a To Do" : "Where do you want to go?"} style={styles.input} />
+    ```
+
+- keyboardType
+
+  - 키보드 타입을 바꿔줌
+
+  - ```js
+     <TextInput keyboardType='number-pad' placeholder={working ? "Add a To Do" : "Where do you want to go?"} style={styles.input} />
+    ```
+
+- multiline
+
+  - text를 줄바꿈 하며 작성 가능
+
+- *onChangeText
+
+  - text변화를 알 수 있음(어떤 문장이 들어왔는지 확인 가능)
+
+  - ```js
+    const onChangeText = (event) => console.log(event)
+
+    <TextInput onChangeText={onChangeText} style={styles.input} />
+    ```
+
+- *state에 적힌 text를 저장하는법
+
+  - ```js
+    // text라는 useState("")를 잡아주고
+    // value를 text로 잡아준뒤
+    // onChangeText라는 함수로 setText를 건드려줌
+    const [text, setText] = useState("") 
+    const onChangeText = (event) => setText(event)
+    <TextInput onChangeText={onChangeText} value={text} />
+
+    // onSubmitEditing를 이용하여 확인 버튼 누를시 addToDo함수가 실행되게 함
+     <TextInput returnKeyType='done' onSubmitEditing={addToDo} onChangeText={onChangeText} value={text} />
+
+    // text가 없으면 return 되고 아니라면 alert() 해서 확인해보기
+    const addToDo = () => {
+        if (text === "") {
+          return;
+        }
+      	alert(text)
+
+    ```
+
+- **저장된 text를 object로 감싸는 법!(object를 이용하여 hash를 사용 )
+
+  1. ```js
+     // toDos라는 useState()를 만듬
+     const [toDos, setToDos] = useState({});
+
+     const addToDo = () => {
+         if (text === "") {
+           return;
+         }
+     // newToDos라는 함수를 이용하는데, Object.assign을 이용
+     // Object.assign은, Object.assign(Obj1, Obj2, obj3}); 형태로, obj1에 기존에 있던 obj2와 새롭게 합쳐질 obj3를 합쳐 obj1에 넣는것이다!
+       
+     // 또 Date.now()는 현재를 해쉬로 변환한 값을 반환하는 함수인데, 이를 key로 사용하여 안정성을 올림
+       
+         const newToDos = Object.assign({}, toDos, {
+           [Date.now()]: { text, work: working },
+         });
+       // ToDos자리에 newToDos로 치환 시켜줌
+         setToDos(newToDos);
+         setText("");
+       };
+       console.log(toDos)
+     ```
+
+  2. ​
+
+     ```js
+     //위와같이 Object.assign이 이해가 잘 되지 않는다면 E26 사용
+
+     // ...toDos는 기존의 toDos를 풀어서 다른 object에 넣어주기 위함
+     const newToDos = { ...toDos, [Date.now()]: {text, work:working},}
+     ```
+
+- Todo를 보여주기 위해 사용하는 map
+
+  - 지금까지 Todo를 object를 이용하여 만들었는데, 이를 기존의 방식처럼 map을 사용하여 보여주기 위해선 어떻게 해야 할 까?(Object.keys() 사용)
+
+  - ```js
+    // 기존방법
+    <ScrollView>{[].map(key => key)}</ScrollView>
+
+    // obj를 map 하여 사용하는 방법
+    <ScrollView>{Object.keys(x).map(key => x[key])}</ScrollView>
+    ```
+
+- *work이거나 travel일때 todo리스트가 다르게 하는법
+
+- ```js
+  const newToDos = { ...toDos, [Date.now()]: {text, working},}
+
+  //map으로 나눌 때 key를 가지고 함수를 타는데, toDos[key].working === 현재의 working이면 보여주고 아니면 null
+  <ScrollView>{Object.keys(toDos).map(key => toDos[key].working === working ?<View style={styles.toDo} key={key}><Text style={styles.toDoText}>{toDos[key].text}</Text></View>: null)}</ScrollView>
+  ```
+
+
+
+## AsyncStorage
+
+- 어플을 껐을시에도 모든 정보가 남아있어야함. 그러려면 expo에 AsyncStorage를 사용해야함
+
+- ```bash
+  expo install @react-native-async-storage/async-storage
+  ```
+
+- ```js
+  // 저장 시 사용 
+  import { AsyncStorage } from '@react-native-async-storage/async-storage';
+
+  const saveToDos = async (toSave) => {
+    const s = JSON.stringify(toSave)
+    await AsyncStorage.setItem(STORAGE_KEY, s)
+  }
+  ```
+
+- ```js
+    // 하나 추가 할 때마다 함께 저장 되는것 이 좋음
+    const addToDo = async () => {
+      if (text === "") {
+        return;
+      }
+      const newToDos = { ...toDos, [Date.now()]: {text, working},}
+      setToDos(newToDos);
+      await saveToDos(newToDos)
+      setText("");
+    };
+  ```
+
+- ```js
+    // 앱 로딩시 저장된 정보 가져옴
+    useEffect(() => {
+      loadToDos();
+    },[])
+    
+      //저장된 정보를 가져오는 코드
+    const loadToDos = async () => {
+      try {
+        const s = await AsyncStorage.getItem(STORAGE_KEY);
+        setToDos(JSON.parse(s));
+      } catch (e) {
+
+      }
+    };
+  ```
+
+- ```js
+    //지울 때 사용되는 코드
+    const deleteToDo = async (key) => {
+      const newToDos = {...toDos}
+      delete newToDos[key]
+      setToDos(newToDos);
+      await saveToDos(newToDos)
+    }
+    
+    <View style={styles.toDo} key={key}>
+      <Text style={styles.toDoText}>{toDos[key].text}</Text>
+      <TouchableOpacity onPress={() => deleteToDo(key)}>
+      <Text>x</Text>
+      </TouchableOpacity>
+    </View>
+  ```
+
+- Alert
+
+- ```
+  const deleteToDo = async (key) => {
+      Alert.alert("Delete To Do?", "Are you sure?")
+      return
+  ```
+
+- ```
+  import { Alert, } from 'react-native';
+  const deleteToDo = async (key) => {
+  	//Alert이용  //대제목          //본문           //object안에 2개의 선택지 작성
+      Alert.alert("Delete To Do?", "Are you sure?", [
+      // Cancel이란 선택지
+        {text:"Cancel"},
+      // I'm Sure이란 선택지
+      // I'm Sure 클릭시 onPress함수가 적용되고 이 함수는
+        {text:"I'm Sure", onPress: async () => {
+        // newToDos라는 함수에 기존toDos를 가져오고
+          const newToDos = {...toDos}
+        // x버튼 클릭시 가져온 key값을 토대로 지운 뒤,
+          delete newToDos[key]
+        // ToDos 저장해줌
+          setToDos(newToDos);
+        // AsyncStorage에도 저장!
+          await saveToDos(newToDos)
+        }}
+      ])
+      return
+    }
+  ```
+
+- icon
+
+- ```js
+  import { Fontisto } from '@expo/vector-icons'
+
+  //x 대신 아이콘을 이용
+  <TouchableOpacity onPress={() => deleteToDo(key)}>
+    <Fontisto name="trash" size={18} color={theme.gray} />
+  </TouchableOpacity>
+  ```
+
+
+
+## Platform
+
+- 어느 환경에서 개발 하고 있는지 알 수 있음
+
+- ```js
+  import {Platform} from "react-native"
+  ```
+
+- 모바일과 web화면을 나눔
+
+- ```js
+   //지울 때 사용되는 코드
+    const deleteToDo = async (key) => {
+      // web에서
+      if (Platform.OS ==="web") {
+        const ok = confirm("Do you want to delete this To Do?")
+        if (ok) {
+          const newToDos = {...toDos}
+          delete newToDos[key]
+          setToDos(newToDos);
+          await saveToDos(newToDos)
+        }
+      } else {
+        Alert.alert("Delete To Do?", "Are you sure?", [
+          {text:"Cancel"},
+          {text:"I'm Sure", onPress: async () => {
+            const newToDos = {...toDos}
+            delete newToDos[key]
+            setToDos(newToDos);
+            await saveToDos(newToDos)
+          }}
+        ])
+      }
+      return
+    }
+  ```
+
+
+
+
+
